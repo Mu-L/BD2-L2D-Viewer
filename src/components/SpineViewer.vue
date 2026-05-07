@@ -31,6 +31,20 @@
         >
           <LayerSelectIcon :active="store.layerSelectionEnabled" />
         </button>
+        <button
+          aria-label="Zoom out"
+          @click="zoomOut"
+          class="w-8 h-8 p-1.5 rounded-md hidden lg:flex items-center justify-center bg-gray-800/70 hover:bg-gray-700/70 text-white transition-colors"
+        >
+          <MinusIcon />
+        </button>
+        <button
+          aria-label="Zoom in"
+          @click="zoomIn"
+          class="w-8 h-8 p-1.5 rounded-md hidden lg:flex items-center justify-center bg-gray-800/70 hover:bg-gray-700/70 text-white transition-colors"
+        >
+          <PlusIcon />
+        </button>
       </div>
     </div>
     <div ref="viewerWrapper" class="relative w-full h-full">
@@ -95,20 +109,22 @@ import { useCharacterStore } from '@/stores/characterStore'
 import {
   SpinePlayer,
   Vector2,
-  Vector3,
   CameraController,
   OrthoCamera,
   GLTexture,
+  type VertexAttachment,
   type Skeleton as SpineSkeleton,
 } from '@esotericsoftware/spine-player'
 import JSZip from 'jszip'
 
-import type { Animation } from '@esotericsoftware/spine-player'
+import type { Animation, Slot } from '@esotericsoftware/spine-player'
 import type { SpinePlayerInternal } from '@/types/spine-player-internal'
 
 import BgEditIcon from '@/components/icons/BgEditIcon.vue'
 import BgToggleIcon from '@/components/icons/BgToggleIcon.vue'
 import LayerSelectIcon from '@/components/icons/LayerSelectIcon.vue'
+import MinusIcon from '@/components/icons/MinusIcon.vue'
+import PlusIcon from '@/components/icons/PlusIcon.vue'
 
 type ResizeHandle = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 type SpineSlot = {
@@ -229,6 +245,9 @@ let manualCamera: OrthoCamera | null = null
 let defaultCameraPos = new Vector2()
 let defaultZoom = 0
 const previousLayerVisibility = new Map<string, boolean>()
+const MIN_ZOOM_FACTOR = 0.08
+const MAX_ZOOM_FACTOR = 4
+const ZOOM_STEP_FACTOR = 1.2
 
 let offset = new Vector2()
 let size = new Vector2()
@@ -1126,7 +1145,7 @@ function onViewerPointerDown(e: PointerEvent) {
 
   const bounds = viewerWrapper.value?.getBoundingClientRect()
   if (!bounds) return
-  
+
   const camState = getCameraState()
   if (!camState) return
 
@@ -1148,12 +1167,12 @@ function onViewerPointerDown(e: PointerEvent) {
     const slot = slots[i] as unknown as SpineSlot
     if (store.layerVisibility[slot.data.name] === false) continue
 
-    const attachment = slot.getAttachment?.() as any
+    const attachment = slot.getAttachment?.() as VertexAttachment | undefined
     const vertexCount = attachment?.worldVerticesLength ?? 0
 
-    if (vertexCount > 0 && typeof attachment.computeWorldVertices === 'function') {
+    if (attachment && vertexCount > 0 && typeof attachment.computeWorldVertices === 'function') {
       const worldVertices = new Float32Array(vertexCount)
-      attachment.computeWorldVertices(slot, 0, vertexCount, worldVertices, 0, 2)
+      attachment.computeWorldVertices(slot as Slot, 0, vertexCount, worldVertices, 0, 2)
       if (isPointInPolygon(wx, wy, worldVertices)) {
         if (store.selectedLayerName !== slot.data.name) {
           store.selectedLayerName = slot.data.name
@@ -1186,16 +1205,16 @@ function drawOverlay() {
 
   const skeleton = player.skeleton
   if (!skeleton) return
-  
+
   const slots = skeleton.slots as unknown as SpineSlot[]
   const slot = slots.find(s => s.data.name === selectedLayer)
   if (!slot || store.layerVisibility[selectedLayer] === false) return
 
-  const attachment = slot.getAttachment?.() as any
+  const attachment = slot.getAttachment?.() as VertexAttachment | undefined
   const vertexCount = attachment?.worldVerticesLength ?? 0
-  if (vertexCount > 0 && typeof attachment.computeWorldVertices === 'function') {
+  if (attachment && vertexCount > 0 && typeof attachment.computeWorldVertices === 'function') {
     const worldVertices = new Float32Array(vertexCount)
-    attachment.computeWorldVertices(slot, 0, vertexCount, worldVertices, 0, 2)
+    attachment.computeWorldVertices(slot as Slot, 0, vertexCount, worldVertices, 0, 2)
 
     const camState = getCameraState()
     if (!camState) return
@@ -1205,7 +1224,7 @@ function drawOverlay() {
     for (let i = 0; i < worldVertices.length; i += 2) {
        const wx = worldVertices[i]
        const wy = worldVertices[i+1]
-       
+
        const nx = ((wx - cx) / zoom) / (vw / 2)
        const ny = ((wy - cy) / zoom) / (vh / 2)
 
@@ -1290,6 +1309,32 @@ function resetCamera() {
   manualCamera.zoom = defaultZoom
   manualCamera.update()
 }
+
+function getZoomBounds() {
+  const baseZoom = defaultZoom || manualCamera?.zoom || 1
+  return {
+    min: baseZoom * MIN_ZOOM_FACTOR,
+    max: baseZoom * MAX_ZOOM_FACTOR,
+  }
+}
+
+function setCameraZoom(nextZoom: number) {
+  if (!manualCamera) return
+  const { min, max } = getZoomBounds()
+  manualCamera.zoom = Math.min(Math.max(nextZoom, min), max)
+  manualCamera.update()
+}
+
+function zoomIn() {
+  if (!manualCamera) return
+  setCameraZoom(manualCamera.zoom / ZOOM_STEP_FACTOR)
+}
+
+function zoomOut() {
+  if (!manualCamera) return
+  setCameraZoom(manualCamera.zoom * ZOOM_STEP_FACTOR)
+}
+
 function saveScreenshot(transparent: boolean) {
   if (!player || !manualCamera) return
 
@@ -1594,7 +1639,7 @@ function exportAnimationFrames(transparent: boolean): Promise<void> {
   })
 }
 
-defineExpose({ resetCamera, saveScreenshot, exportAnimation, exportAnimationFrames })
+defineExpose({ resetCamera, zoomIn, zoomOut, saveScreenshot, exportAnimation, exportAnimationFrames })
 </script>
 <style scoped>
 .seek-range {

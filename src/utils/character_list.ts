@@ -772,8 +772,10 @@ export default {
     "charName": "Palette",
     "costumeName": "Miracle Violet",
     "spine": "char004202",
-    "cutscene": "",
-    "dating": ""
+    "cutscene": "cutscene_char004202",
+    "dating": "illust_dating17",
+    "datingHasNoBg": false,
+    "datingUsesTracks": true
   },
   "020001": {
     "charName": "Eris",

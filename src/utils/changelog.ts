@@ -1,5 +1,14 @@
 export default [
   {
+    "date": "07/05/2026",
+    "changes": [
+      "Added Palette: Miracle Violet ultimate and fated guest animations.",
+      "Added layer selector feature with controls to toggle the layers on and off. Thanks omarcande for the Pull Request",
+      "Added zoom controls in case scroll wheel doesn't work properly",
+      "As always, if you like my work and want to support me so I can keep working on adding more features and improving the site you can do so by donating in either my Ko-Fi or Patreon <3."
+    ]
+  },
+  {
     "date": "23/04/2026",
     "changes": [
       "Added Liberta: Miracle Rose, Palette: Miracle Violet and Mamonir: Miracle Marine character icon.",

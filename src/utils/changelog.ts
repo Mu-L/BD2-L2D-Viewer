@@ -1,5 +1,18 @@
 export default [
   {
+    "date": "04/06/2026",
+    "changes": [
+      "Added Scheherazade: Deliberate Ace, Nebris: Lucky Bikini, Darian: Herald of Enlightment, Nekyndalia: Deadeye, Granhildr: Combat Medic, Michaela: True Liberation and Luvencia: Ocean Vanguard character icon.",
+      "Added Scheherazade: Deliberate Ace, Nebris: Lucky Bikini, Darian: Herald of Enlightment, Nekyndalia: Deadeye, Elise: Naive Lady, Dalvi: Tricky Lover, Rudina (NPC), Granhildr: Combat Medic, Michaela: True Liberation and Luvencia: Ocean Vanguard standing animations.",
+      "Added Scheherazade: Deliberate Ace, Darian: Herald of Enlightment, Nekyndalia: Deadeye, Michaela: True Liberation and Luvencia: Ocean Vanguard ultimates animations.",
+      "Added Scheherazade: Deliberate Ace fated guests animations.",
+      "Updated Teresse: Milky Bikini fated guest animations.",
+      "Fixed Mamonir: Miracle Marine composite 'cut_B_all' animation.",
+      "Fixed severe lag issues when watching fated guest animations after the rendering engine upgrade from the last update, in fact now it should be even smoother than before the engine upgrade.",
+      "As always, if you like my work and want to support me so I can keep working on adding more features and improving the site you can do so by donating in either my Ko-Fi or Patreon <3."
+    ]
+  },
+  {
     "date": "23/05/2026",
     "changes": [
       "Added Mamonir: Miracle Marine ultimate animations.",
